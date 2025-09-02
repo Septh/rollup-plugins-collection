@@ -11,7 +11,7 @@ export interface NoCommentsOptions {
 }
 
 /** Removes residual comments in the bundle. */
-export function noComments({ keepLicences = false, keepDocs = false, keepAnnotations = false }: NoCommentsOptions = {}): Plugin {
+export function noComment({ keepLicences = false, keepDocs = false, keepAnnotations = false }: NoCommentsOptions = {}): Plugin {
 
     const licenseStartRx  = /^\/\*\![ \r\n\u2028\u2029]/    // /*!<space or line terminator>
     const docStartRx      = /^\/\*\*[ \r\n\u2028\u2029]/    // /**<space or line terminator>
