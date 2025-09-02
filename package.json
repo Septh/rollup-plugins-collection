@@ -62,6 +62,7 @@
     "@rollup/plugin-node-resolve": "^16.0.1",
     "@septh/ts-run": "^2.0.0",
     "@types/node": "^24.0.0",
+    "estree-walker": "^3.0.3",
     "rimraf": "^6.0.0",
     "rollup": "^4.0.0",
     "rollup-plugin-node-externals": "^8.1.0",
