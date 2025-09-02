@@ -1,7 +1,6 @@
 {
   "include": [
-    "source",
-    "rollup.config.js"
+    "source"
   ],
   "compilerOptions": {
 

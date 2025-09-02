@@ -4,7 +4,7 @@
     "source"
   ],
   "compilerOptions": {
-    "outDir": "out",
+    "outDir": "dist",
     "sourceMap": true,
     "declaration": true,
     "declarationMap": true,

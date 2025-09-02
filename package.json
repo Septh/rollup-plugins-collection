@@ -1,7 +1,7 @@
 {
   "name": "rollup-plugins-collection",
   "version": "1.0.0",
-  "description": "xxx",
+  "description": "A collection of tiny useful plugins for your everyday Rollup.",
   "keywords": [],
   "author": "Stephan 'Septh' Schreiber <septh@sfr.fr>",
   "homepage": "https://github.com/septh/plugins-collection#readme",
@@ -51,6 +51,7 @@
     "prepublishOnly": "npm run build"
   },
   "dependencies": {
+    "estree-walker": "^3.0.3",
     "magic-string": "^0.30.18",
     "regex": "^6.0.1"
   },
@@ -62,7 +63,6 @@
     "@rollup/plugin-node-resolve": "^16.0.1",
     "@septh/ts-run": "^2.0.0",
     "@types/node": "^24.0.0",
-    "estree-walker": "^3.0.3",
     "rimraf": "^6.0.0",
     "rollup": "^4.0.0",
     "rollup-plugin-node-externals": "^8.1.0",
