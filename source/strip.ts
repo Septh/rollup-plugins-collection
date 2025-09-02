@@ -3,12 +3,14 @@ import { Raker } from './lib/raker.js'
 import type { Plugin } from 'rollup'
 
 export interface StripOptions {
-    console?: boolean | string[]
-    debugger?: boolean
+    /** Keep all `console.*` calls, none, or only passed method names. */
+    keepConsole?: boolean | string[]
+    /** Keep `debugger` statements. */
+    keepDebugger?: boolean
 }
 
 /** Strips console.* calls and debugger statements. */
-export function strip({ console = false, debugger: debug = false }: StripOptions): Plugin {
+export function strip({ keepConsole = false, keepDebugger = false }: StripOptions = {}): Plugin {
 
     const allConsoleMethods = Object.entries(console).reduce((result, [ name, prop ]) => {
         if (typeof prop === 'function' && typeof name === 'string')
@@ -17,11 +19,9 @@ export function strip({ console = false, debugger: debug = false }: StripOptions
     }, [] as string[])
 
     const shouldRemoveConsoleCall: (method: string) => boolean = (
-        debug === true
-            ? () => true
-            : debug === false
-                ? () => false
-                : createFilter(allConsoleMethods, [ 'info', 'warn', 'error', 'debug' ])
+        typeof keepConsole === 'boolean'
+            ? () => !keepConsole
+            : createFilter(allConsoleMethods, keepConsole)
     )
 
     return {
@@ -33,7 +33,7 @@ export function strip({ console = false, debugger: debug = false }: StripOptions
             walk(this.parse(code), {
                 // NB: inside this block, `this` is the WalkerContext
                 enter(node, parent) {
-                    if (node.type === 'DebuggerStatement' && debug) {
+                    if (node.type === 'DebuggerStatement' && !keepDebugger) {
                         raker.rakeAstNode(node, parent!)
                         this.skip()
                     }
