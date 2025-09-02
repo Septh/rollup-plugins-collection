@@ -1,16 +1,16 @@
 import { walk } from 'estree-walker'
-import { Raker } from './lib/raker.js'
+import MagicString from 'magic-string'
 import type { Plugin } from 'rollup'
 
-export interface StripOptions {
+export interface NoDebugOptions {
     /** Keep all `console.*` calls, none, or only passed method names. */
     keepConsole?: boolean | string[]
     /** Keep `debugger` statements. */
     keepDebugger?: boolean
 }
 
-/** Strips console.* calls and debugger statements. */
-export function strip({ keepConsole = false, keepDebugger = false }: StripOptions = {}): Plugin {
+/** Strips `debugger` statements and `console.*` calls. */
+export function noDebug({ keepConsole = false, keepDebugger = false }: NoDebugOptions = {}): Plugin {
 
     const allConsoleMethods = Object.entries(console).reduce((result, [ name, prop ]) => {
         if (typeof prop === 'function' && typeof name === 'string')
@@ -28,16 +28,17 @@ export function strip({ keepConsole = false, keepDebugger = false }: StripOption
         name: 'strip',
 
         transform(code) {
+            const ms = new MagicString(code)
 
-            const raker = new Raker(code)
             walk(this.parse(code), {
                 // NB: inside this block, `this` is the WalkerContext
                 enter(node, parent) {
-                    if (node.type === 'DebuggerStatement' && !keepDebugger) {
-                        raker.rakeAstNode(node, parent!)
+                    const { type, start, end } = node
+                    if (type === 'DebuggerStatement' && !keepDebugger) {
+                        ms.remove(start, end)
                         this.skip()
                     }
-                    else if (node.type === 'CallExpression') {
+                    else if (type === 'CallExpression') {
                         const { callee } = node
                         if (
                             callee.type === 'MemberExpression'
@@ -46,15 +47,26 @@ export function strip({ keepConsole = false, keepDebugger = false }: StripOption
                             && callee.property.type === 'Identifier'
                             && shouldRemoveConsoleCall(callee.property.name)
                         ) {
-                            raker.rakeAstNode(node, parent!)
+                            switch (parent!.type) {
+                                case 'Program':
+                                case 'BlockStatement':
+                                case 'ExpressionStatement':
+                                case 'StaticBlock':
+                                    ms.remove(start, end)
+                                    break
+
+                                default:
+                                    ms.overwrite(start, end, '(void 0)')
+                                    break
+                            }
                             this.skip()
                         }
                     }
                 }
             })
 
-            return raker.hasChanged()
-                ? { code: raker.toString(), map: raker.generateMap() }
+            return ms.hasChanged()
+                ? { code: ms.toString(), map: ms.generateMap() }
                 : null
         }
     }
