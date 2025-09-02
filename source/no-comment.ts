@@ -24,11 +24,11 @@ export function noComment({ keepLicences = false, keepDocs = false, keepAnnotati
     const removeAnnotations = !keepAnnotations
 
     return {
-        name: 'no-comments',
+        name: 'no-comment',
 
         renderChunk(code) {
             const ms = new MagicString(code)
-            rakeComments(ms, comment => Boolean(
+            remove_comments(ms, comment => Boolean(
                 licenseStartRx.test(comment) ? removeLicenses
                 : docStartRx.test(comment) ? (
                     docLicenseTagRx.test(comment) ? removeLicenses : removeDocs
@@ -43,7 +43,7 @@ export function noComment({ keepLicences = false, keepDocs = false, keepAnnotati
         }
     }
 
-    function rakeComments(ms: MagicString, shouldRemove: (comment: string) => boolean) {
+    function remove_comments(ms: MagicString, shouldRemove: (comment: string) => boolean) {
         const { original: code } = ms,
               end = code.length
         return scan(0, false)
