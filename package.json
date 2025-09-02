@@ -1,8 +1,12 @@
 {
-  "name": "rollup-plugins-collection",
-  "version": "1.0.0",
+  "name": "@septh/rollup-plugins-collection",
+  "version": "0.0.0",
   "description": "A collection of tiny useful plugins for your everyday Rollup.",
-  "keywords": [],
+  "keywords": [
+    "rollup",
+    "plugin",
+    "multi"
+  ],
   "author": "Stephan 'Septh' Schreiber <septh@sfr.fr>",
   "homepage": "https://github.com/septh/plugins-collection#readme",
   "repository": {
@@ -36,12 +40,14 @@
   "imports": {
     "#package.json": "./package.json"
   },
-  "zz-files": [
+  "publishConfig": {
+    "access": "public"
+  },
+  "files": [
     "dist",
     "!*.map"
   ],
   "scripts": {
-    "prepare": "npm run build",
     "prebuild": "npm run clean",
     "build": "npm run build:js && npm run build:dts",
     "build:js": "tsc -p tsconfig.build.json --removeComments",
@@ -49,7 +55,7 @@
     "clean": "rimraf dist out",
     "pretest": "npm run build",
     "test": "npm run testOnly",
-    "testOnly": "echo \"Error: no test specified\" && exit 1",
+    "testOnly": "echo \"No test yet",
     "prepublishOnly": "npm run build"
   },
   "dependencies": {
