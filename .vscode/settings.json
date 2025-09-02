@@ -8,6 +8,8 @@
   },
   "conventionalCommits.scopes": [
     "repo",
-    "no-comment"
+    "ts-enums",
+    "no-comment",
+    "production"
   ]
 }

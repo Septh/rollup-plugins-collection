@@ -2,7 +2,7 @@ import { walk } from 'estree-walker'
 import MagicString from 'magic-string'
 import type { Plugin } from 'rollup'
 
-export interface NoDebugOptions {
+export interface ProductionOptions {
     /** Keep all `console.*` calls, none, or only passed method names. */
     keepConsole?: boolean | string[]
     /** Keep `debugger` statements. */
@@ -10,7 +10,7 @@ export interface NoDebugOptions {
 }
 
 /** Strips `debugger` statements and `console.*` calls. */
-export function noDebug({ keepConsole = false, keepDebugger = false }: NoDebugOptions = {}): Plugin {
+export function production({ keepConsole = false, keepDebugger = false }: ProductionOptions = {}): Plugin {
 
     const allConsoleMethods = Object.entries(console).reduce((result, [ name, prop ]) => {
         if (typeof prop === 'function' && typeof name === 'string')
