@@ -1,0 +1,41 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "ts-run index.ts",
+      "type": "node",
+      "request": "launch",
+      "runtimeArgs": [
+        "--import=@septh/ts-run",
+      ],
+      "cwd": "${workspaceFolder}",
+      "program": "source/index.ts",
+      "args": [],
+        "env": {
+            "DEBUG": "1"
+        },
+      "console": "internalConsole",
+      "outputCapture": "std",
+      "internalConsoleOptions": "openOnSessionStart",
+      "skipFiles": [
+        "<node_internals>/**",
+        "**/node_modules/**"
+      ]
+    },
+    {
+      "name": "Launch program",
+      "type": "node",
+      "request": "launch",
+      "cwd": "${workspaceFolder}",
+      "program": "out/index.js",
+      "args": [],
+      "console": "internalConsole",
+      "outputCapture": "std",
+      "internalConsoleOptions": "openOnSessionStart",
+      "skipFiles": [
+        "<node_internals>/**",
+        "**/node_modules/**"
+      ]
+    }
+  ]
+}

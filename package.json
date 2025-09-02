@@ -1,0 +1,67 @@
+{
+  "name": "rollup-plugins-collection",
+  "version": "1.0.0",
+  "description": "xxx",
+  "keywords": [],
+  "author": "Stephan 'Septh' Schreiber <septh@sfr.fr>",
+  "homepage": "https://github.com/septh/plugins-collection#readme",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/septh/plugins-collection"
+  },
+  "bugs": "https://github.com/septh/plugins-collection/issues",
+  "license": "MIT",
+  "funding": [
+    {
+      "type": "patreon",
+      "url": "https://patreon.com/Septh"
+    },
+    {
+      "type": "paypal",
+      "url": "https://paypal.me/septh07"
+    }
+  ],
+  "engines": {
+    "node": ">= 22"
+  },
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index/d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "imports": {
+    "#package.json": "./package.json"
+  },
+  "files": [
+    "dist",
+    "!*.map"
+  ],
+  "scripts": {
+    "prebuild": "npm run clean",
+    "build": "tsc -p tsconfig.build.json --removeComments",
+    "build:dts": "tsc -p tsconfig.build.json --declaration --emitDeclarationOnly --removeComments false",
+    "clean": "rimraf dist out",
+    "pretest": "npm run build",
+    "test": "npm run testOnly",
+    "testOnly": "echo \"Error: no test specified\" && exit 1",
+    "prepublishOnly": "npm run build"
+  },
+  "peerDependencies": {
+    "rollup": "^4.0.0"
+  },
+  "devDependencies": {
+    "@rollup/plugin-commonjs": "^28.0.6",
+    "@rollup/plugin-node-resolve": "^16.0.1",
+    "@septh/ts-run": "^2.0.0",
+    "@types/node": "^24.0.0",
+    "rimraf": "^6.0.0",
+    "rollup": "^4.0.0",
+    "rollup-plugin-node-externals": "^8.1.0",
+    "tslib": "^2.8.0",
+    "typescript": "^5.9.0"
+  }
+}

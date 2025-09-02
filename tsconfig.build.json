@@ -1,0 +1,16 @@
+{
+  "extends": "./tsconfig.json",
+  "include": [
+    "source"
+  ],
+  "compilerOptions": {
+    "outDir": "out",
+    "sourceMap": true,
+    "declaration": true,
+    "declarationMap": true,
+    "importHelpers": true,
+    "stripInternal": true,
+    "skipLibCheck": true,
+    "noEmit": false,
+  }
+}

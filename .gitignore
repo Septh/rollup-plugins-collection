@@ -1,0 +1,7 @@
+/node_modules
+/lib
+/bin
+/dist
+/build
+/out
+*.tsbuildinfo
