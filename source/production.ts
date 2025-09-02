@@ -25,7 +25,7 @@ export function production({ keepConsole = false, keepDebugger = false }: Produc
     )
 
     return {
-        name: 'strip',
+        name: 'production',
 
         transform(code) {
             const ms = new MagicString(code)
