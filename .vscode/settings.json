@@ -7,7 +7,6 @@
     ]
   },
   "conventionalCommits.scopes": [
-    "repo",
     "repo"
   ]
 }
