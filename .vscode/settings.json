@@ -5,5 +5,8 @@
       "<node_internals>/**",
       "**/node_modules/**"
     ]
-  }
+  },
+  "conventionalCommits.scopes": [
+    "repo"
+  ]
 }

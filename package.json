@@ -50,6 +50,10 @@
     "testOnly": "echo \"Error: no test specified\" && exit 1",
     "prepublishOnly": "npm run build"
   },
+  "dependencies": {
+    "magic-string": "^0.30.18",
+    "regex": "^6.0.1"
+  },
   "peerDependencies": {
     "rollup": "^4.0.0"
   },
