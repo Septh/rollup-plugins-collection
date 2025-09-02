@@ -36,11 +36,12 @@
   "imports": {
     "#package.json": "./package.json"
   },
-  "files": [
+  "zz-files": [
     "dist",
     "!*.map"
   ],
   "scripts": {
+    "prepare": "npm run build",
     "prebuild": "npm run clean",
     "build": "npm run build:js && npm run build:dts",
     "build:js": "tsc -p tsconfig.build.json --removeComments",
