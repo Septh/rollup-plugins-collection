@@ -23,7 +23,7 @@ import type { Plugin } from 'rollup'
  *
  * And this is how this plugin transforms the above:
  * ````ts
- * export var X = ((X) => {
+ * export var X = #__PURE__ ((X) => {
  *   X[X["a"] = 0] = "a";
  *   X[X["b"] = 10] = "b";
  *   X[X["c"] = 11] = "c";
@@ -46,28 +46,31 @@ export function enums(): Plugin {
         \}\)\(\k<name>\s*\|\|\s*\(\k<name>\s*=\s*\{\}\)\);? # })(XX || XX={});
       )
     `
-    let match: RegExpMatchArray | null
 
     return {
         name: 'ts-enums',
 
-        transform(code, id) {
-            const ms = new MagicString(code)
-            const indent = ms.getIndentString()
+        transform: {
+            order: 'post',
+            handler(code) {
+                const ms = new MagicString(code)
+                const indent = ms.getIndentString()
+                let match: RegExpMatchArray | null
 
-            enumRx.lastIndex = 0
-            while (match = enumRx.exec(code)) {
-                const export_ = match.groups!.export ?? ''
-                const varName = match.groups!.name
-                const indices = match.indices!.groups!
+                enumRx.lastIndex = 0
+                while (match = enumRx.exec(code)) {
+                    const export_ = match.groups!.export ?? ''
+                    const varName = match.groups!.name
+                    const indices = match.indices!.groups!
 
-                ms.update(indices.intro[ 0 ], indices.intro[ 1 ], `${export_}var ${varName} = /*#__PURE__*/ ((${varName}) => {`)
-                ms.update(indices.outro[ 0 ], indices.outro[ 1 ], `${indent}return ${varName};\n})(${varName} || {});`)
+                    ms.update(indices.intro[ 0 ], indices.intro[ 1 ], `${export_}var ${varName} = /*#__PURE__*/ ((${varName}) => {`)
+                    ms.update(indices.outro[ 0 ], indices.outro[ 1 ], `${indent}return ${varName};\n})(${varName} || {});`)
+                }
+
+                return ms.hasChanged()
+                    ? { code: ms.toString(), map: ms.generateMap() }
+                    : null
             }
-
-            return ms.hasChanged()
-                ? { code: ms.toString(), map: ms.generateMap() }
-                : null
         }
     }
 }
