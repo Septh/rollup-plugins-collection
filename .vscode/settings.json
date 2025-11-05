@@ -8,8 +8,11 @@
   },
   "conventionalCommits.scopes": [
     "repo",
-    "ts-enums",
+    "enums",
     "no-comment",
     "production"
+  ],
+  "cSpell.words": [
+    "libwin"
   ]
 }

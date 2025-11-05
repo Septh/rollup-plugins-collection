@@ -2,7 +2,7 @@ import MagicString from 'magic-string'
 import type { Plugin } from 'rollup'
 import { CharCode, whitespace, lineTerminators } from './lib/charcode.js'
 
-export interface NoCommentsOptions {
+export interface NoCommentOptions {
     /** Keep license (`/*!`) comments? */
     keepLicences?: boolean | undefined
     /** Keep JSDoc/TSDoc (`/**`) comments? */
@@ -12,7 +12,7 @@ export interface NoCommentsOptions {
 }
 
 /** Removes residual comments in the bundle. */
-export function noComment({ keepLicences = false, keepDocs = false, keepAnnotations = false }: NoCommentsOptions = {}): Plugin {
+export default function noComment({ keepLicences = false, keepDocs = false, keepAnnotations = false }: NoCommentOptions = {}): Plugin {
 
     const licenseStartRx  = /^\/\*\![ \r\n\u2028\u2029]/    // /*!<space or line terminator>
     const docStartRx      = /^\/\*\*[ \r\n\u2028\u2029]/    // /**<space or line terminator>

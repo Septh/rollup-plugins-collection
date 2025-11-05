@@ -3,8 +3,7 @@ import MagicString from 'magic-string'
 import type { Plugin } from 'rollup'
 
 /*
- * A plugin that rewrites TypeScript's emitted enums into a tree-shakeable
- * form -- the same as esbuid's.
+ * A plugin that rewrites TypeScript's emitted enums into a tree-shakeable form -- the same as esbuild's.
  *
  * For example, consider this TypeScript code:
  * ````ts
@@ -33,7 +32,7 @@ import type { Plugin } from 'rollup'
  */
 
 /** Turns TypeScript enum's into a tree-shakeable form. */
-export function enums(): Plugin {
+export default function enums(): Plugin {
 
     // https://regex101.com/r/1nyPC3/5
     const enumRx = regex('gsd')`
@@ -48,7 +47,7 @@ export function enums(): Plugin {
     `
 
     return {
-        name: 'ts-enums',
+        name: 'enums',
 
         transform: {
             order: 'post',

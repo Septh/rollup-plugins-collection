@@ -1,19 +1,19 @@
 import type { Plugin } from 'rollup'
-import { enums } from './ts-enums.js'
-import { noComment, type NoCommentsOptions } from './no-comment.js'
-import { production, type ProductionOptions } from './production.js'
+import enums from './enums.js'
+import noComment, { type NoCommentOptions } from './no-comment.js'
+import production, { type ProductionOptions } from './production.js'
 
-export interface PluginOptions {
-    comments?: NoCommentsOptions | undefined
+export interface CollectionOptions {
+    comments?: NoCommentOptions | undefined
     debug?: ProductionOptions | undefined
 }
 
-export default function plugins(options: PluginOptions = {}): Plugin[] {
+export default function collection(options: CollectionOptions = {}): Plugin[] {
     return [ enums(), noComment(options.comments), production(options.debug) ]
 }
 
 export {
     enums,
-    noComment, type NoCommentsOptions,
+    noComment, type NoCommentOptions,
     production, type ProductionOptions
 }

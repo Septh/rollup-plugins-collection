@@ -4,13 +4,13 @@ import type { Plugin } from 'rollup'
 
 export interface ProductionOptions {
     /** Keep all `console.*` calls, none, or only passed method names. */
-    keepConsole?: boolean | string[]
+    keepConsole?: boolean | string[] | undefined
     /** Keep `debugger` statements. */
-    keepDebugger?: boolean
+    keepDebugger?: boolean | undefined
 }
 
 /** Strips `debugger` statements and `console.*` calls. */
-export function production({ keepConsole = false, keepDebugger = false }: ProductionOptions = {}): Plugin {
+export default function production({ keepConsole = false, keepDebugger = false }: ProductionOptions = {}): Plugin {
 
     const allConsoleMethods = Object.entries(console).reduce((result, [ name, prop ]) => {
         if (typeof prop === 'function' && typeof name === 'string')
