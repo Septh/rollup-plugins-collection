@@ -2,8 +2,10 @@ import { regex } from 'regex'
 import MagicString from 'magic-string'
 import type { Plugin } from 'rollup'
 
-/*
- * A plugin that rewrites TypeScript's emitted enums into a tree-shakeable form -- the same as esbuild's.
+export enum Test { a, b,c }
+
+/**
+ * Turns TypeScript enums into a tree-shakeable form -- the same as esbuild's.
  *
  * For example, consider this TypeScript code:
  * ````ts
@@ -22,29 +24,35 @@ import type { Plugin } from 'rollup'
  *
  * And this is how this plugin transforms the above:
  * ````ts
- * export var X = #__PURE__ ((X) => {
+ * export var X = ((X) => {
  *   X[X["a"] = 0] = "a";
  *   X[X["b"] = 10] = "b";
  *   X[X["c"] = 11] = "c";
  *   return X;
  * })(X || {});
  * ````
+ *
+ * Notes:
+ * - The IIFE is annotated as PURE.
+ * - This works for enums, const enums, and even namespaces!
+ * - The [regex](https://www.npmjs.com/package/regex) package is absolutely AWESOME!
  */
-
-/** Turns TypeScript enum's into a tree-shakeable form. */
 export default function enums(): Plugin {
 
-    // https://regex101.com/r/1nyPC3/5
+    // https://regex101.com/r/1nyPC3/8
     const enumRx = regex('gsd')`
-      (?<intro>
-        \b(?<export>export\s+)?var\s+(?<name>[^;\s]+);?\s*  # export var XX;
-        \(function\s*\(\k<name>\)\s*\{                      # (function (XX) {
-      )
-      (?<body>.*)
-      (?<outro>
-        \}\)\(\k<name>\s*\|\|\s*\(\k<name>\s*=\s*\{\}\)\);? # })(XX || XX={});
-      )
-    `
+        (?<intro>
+          \b(?<export>export\s)?var\s(?<name>[^;]+);\n   # export var XX;\n
+          \s*\(function\s\(\k<name>\)\s\{                # (function (XX) {
+        )
+
+        # Skip everything up to the outro.
+        .*
+
+        (?<outro>
+          \}\)\(\k<name>\s\|\|\s\(\k<name>\s=\s\{\}\)\); # })(XX || XX={});
+        )
+    `;
 
     return {
         name: 'enums',
@@ -62,8 +70,8 @@ export default function enums(): Plugin {
                     const varName = match.groups!.name
                     const indices = match.indices!.groups!
 
-                    ms.update(indices.intro[ 0 ], indices.intro[ 1 ], `${export_}var ${varName} = /*#__PURE__*/ ((${varName}) => {`)
-                    ms.update(indices.outro[ 0 ], indices.outro[ 1 ], `${indent}return ${varName};\n})(${varName} || {});`)
+                    ms.update(indices.intro[0], indices.intro[1], `${export_}var ${varName} = /*#__PURE__*/ ((${varName}) => {`)
+                    ms.update(indices.outro[0], indices.outro[1], `${indent}return ${varName};\n})(${varName} || {});`)
                 }
 
                 return ms.hasChanged()

@@ -71,7 +71,8 @@
   "dependencies": {
     "estree-walker": "^3.0.3",
     "magic-string": "^0.30.21",
-    "regex": "^6.1.0"
+    "regex": "^6.1.0",
+    "zimmerframe": "^1.1.4"
   },
   "peerDependencies": {
     "rollup": "^4.50.0"

@@ -1,6 +1,7 @@
 {
   "include": [
-    "source"
+    "source",
+    "./zz_test.ts"
   ],
   "compilerOptions": {
 
