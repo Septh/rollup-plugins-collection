@@ -4,13 +4,19 @@
     "source"
   ],
   "compilerOptions": {
-    "outDir": "dist",
+
+    // Input
+    "rootDir": "source",
+
+    // Output
+    "outDir": "out",
     "sourceMap": true,
     "declaration": true,
     "declarationMap": true,
-    "importHelpers": true,
     "stripInternal": true,
-    "skipLibCheck": true,
-    "noEmit": false,
+    "preserveConstEnums": false,
+    "allowJs": false,
+    "checkJs": false,
+    "noEmit": false
   }
 }

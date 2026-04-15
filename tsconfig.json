@@ -4,36 +4,33 @@
   ],
   "compilerOptions": {
 
+    // Environment
+    "module": "node20",
+    "target": "ESNext",
+    "lib": [ "ESNext" ],
+    "types": [ "node" ],
+
     // Input
-    "checkJs": true,
     "resolveJsonModule": true,
+    "checkJs": true,
 
     // Output
-    "target": "esnext",
-    "noEmitOnError": true,
+    "rewriteRelativeImportExtensions": true,
     "noEmit": true,
-
-    // Module
-    "module": "node20",
-    "esModuleInterop": true,
-    "allowSyntheticDefaultImports": true,
-
-    // Libs
-    "lib": [ "ESNext" ],
-    "skipLibCheck": false,
-    "skipDefaultLibCheck": true,
 
     // Type checking
     "strict": true,
+    "skipLibCheck": false,
+    "skipDefaultLibCheck": true,
     "noUnusedLocals": false,
     "noUnusedParameters": false,
     "noImplicitReturns": true,
     "noImplicitOverride": true,
+    "noUncheckedSideEffectImports": true,
     "exactOptionalPropertyTypes": false,
     "noUncheckedIndexedAccess": false,
     "noPropertyAccessFromIndexSignature": false,
     "noFallthroughCasesInSwitch": false,
-    "forceConsistentCasingInFileNames": true,
-    // "isolatedModules": true,
+    "forceConsistentCasingInFileNames": true
   }
 }
