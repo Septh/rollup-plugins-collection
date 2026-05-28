@@ -13,16 +13,11 @@ export interface ProductionOptions {
 /** Strips `debugger` statements and `console.*` calls. */
 export default function production({ keepConsole = false, keepDebugger = false }: ProductionOptions = {}): Plugin {
 
-    const allConsoleMethods = Object.entries(console).reduce((result, [ name, prop ]) => {
-        if (typeof prop === 'function' && typeof name === 'string')
-            result.push(name)
-        return result
-    }, [] as string[])
-
+    const consoleMethods = Object.keys(console).filter(name => typeof console[name as keyof Console] === 'function')
     const shouldRemoveConsoleCall: (method: string) => boolean = (
         typeof keepConsole === 'boolean'
             ? () => !keepConsole
-            : createFilter(allConsoleMethods, keepConsole)
+            : createFilter(consoleMethods, keepConsole)
     )
 
     return {

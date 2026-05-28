@@ -51,7 +51,7 @@ Removes residual comments in the bundle. Extracted from [rollup-plugin-code-rake
 ```ts
 interface NoCommentOptions {
     /** Keep license (`/*!`) comments? */
-    keepLicences?: boolean
+    keepLicenses?: boolean
 
     /** Keep JSDoc/TSDoc (`/**`) comments? */
     keepDocs?: boolean
