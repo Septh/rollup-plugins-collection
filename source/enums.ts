@@ -2,8 +2,6 @@ import { regex } from 'regex'
 import MagicString from 'magic-string'
 import type { Plugin } from 'rollup'
 
-export enum Test { a, b,c }
-
 /**
  * Turns TypeScript enums into a tree-shakeable form -- the same as esbuild's.
  *
@@ -62,16 +60,12 @@ export default function enums(): Plugin {
             handler(code) {
                 const ms = new MagicString(code)
                 const indent = ms.getIndentString()
-                let match: RegExpMatchArray | null
+                for (const { groups, indices } of code.matchAll(enumRx) as RegExpStringIterator<RegExpExecArrayWithGroupsAndIndices<'intro' | 'export' | 'name' | 'outro'>>) {
+                    const export_ = groups.export ?? ''
+                    const varName = groups.name
 
-                enumRx.lastIndex = 0
-                while (match = enumRx.exec(code)) {
-                    const export_ = match.groups!.export ?? ''
-                    const varName = match.groups!.name
-                    const indices = match.indices!.groups!
-
-                    ms.update(indices.intro[0], indices.intro[1], `${export_}var ${varName} = /*#__PURE__*/ ((${varName}) => {`)
-                    ms.update(indices.outro[0], indices.outro[1], `${indent}return ${varName};\n})(${varName} || {});`)
+                    ms.update(indices.groups.intro![0], indices.groups.intro![1], `${export_}var ${varName} = /*#__PURE__*/ ((${varName}) => {`)
+                    ms.update(indices.groups.outro![0], indices.groups.outro![1], `${indent}return ${varName};\n})(${varName} || {});`)
                 }
 
                 return ms.hasChanged()
