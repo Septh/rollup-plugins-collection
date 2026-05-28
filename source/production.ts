@@ -1,5 +1,6 @@
-import { walk } from 'estree-walker'
 import MagicString from 'magic-string'
+import { walk } from 'zimmerframe'
+import type { Node } from "estree"
 import type { Plugin } from 'rollup'
 
 export interface ProductionOptions {
@@ -30,36 +31,32 @@ export default function production({ keepConsole = false, keepDebugger = false }
         transform(code) {
             const ms = new MagicString(code)
 
-            walk(this.parse(code), {
-                // NB: inside this block, `this` is the WalkerContext
-                enter(node, parent) {
-                    const { type, start, end } = node
-                    if (type === 'DebuggerStatement' && !keepDebugger) {
-                        ms.remove(start, end)
-                        this.skip()
-                    }
-                    else if (type === 'CallExpression') {
-                        const { callee } = node
-                        if (
-                            callee.type === 'MemberExpression'
-                            && callee.object.type === 'Identifier'
-                            && callee.object.name === 'console'
-                            && callee.property.type === 'Identifier'
-                            && shouldRemoveConsoleCall(callee.property.name)
-                        ) {
-                            switch (parent!.type) {
-                                case 'Program':
-                                case 'BlockStatement':
-                                case 'ExpressionStatement':
-                                case 'StaticBlock':
-                                    ms.remove(start, end)
-                                    break
+            walk(this.parse(code) as Node, {}, {
+                DebuggerStatement(node) {
+                    if (!keepDebugger)
+                        ms.remove(node.start, node.end)
+                },
 
-                                default:
-                                    ms.overwrite(start, end, '(void 0)')
-                                    break
-                            }
-                            this.skip()
+                CallExpression(node, context) {
+                    const { callee } = node
+                    if (
+                        callee.type === 'MemberExpression'
+                        && callee.object.type === 'Identifier'
+                        && callee.object.name === 'console'
+                        && callee.property.type === 'Identifier'
+                        && shouldRemoveConsoleCall(callee.property.name)
+                    ) {
+                        switch (context.path.at(-1)?.type) {
+                            case 'Program':
+                            case 'BlockStatement':
+                            case 'ExpressionStatement':
+                            case 'StaticBlock':
+                                ms.remove(node.start, node.end)
+                                break
+
+                            default:
+                                ms.overwrite(node.start, node.end, '(void 0)')
+                                break
                         }
                     }
                 }
