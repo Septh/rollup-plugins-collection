@@ -11,7 +11,7 @@
   "homepage": "https://github.com/septh/plugins-collection#readme",
   "repository": {
     "type": "git",
-    "url": "https://github.com/septh/plugins-collection"
+    "url": "git+https://github.com/septh/plugins-collection"
   },
   "bugs": "https://github.com/septh/plugins-collection/issues",
   "license": "MIT",
