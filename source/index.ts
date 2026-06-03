@@ -8,6 +8,9 @@ export interface CollectionOptions {
     debug?: ProductionOptions | undefined
 }
 
+/**
+ * All plugins in the collection with only one import!
+ */
 export default function collection(options: CollectionOptions = {}): Plugin[] {
     return [ enums(), noComment(options.comments), production(options.debug) ]
 }
