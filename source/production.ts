@@ -1,6 +1,6 @@
 import MagicString from 'magic-string'
 import { walk } from 'zimmerframe'
-import type { Node } from "estree"
+import type { Node as AstNode } from "estree"
 import type { Plugin } from 'rollup'
 
 export interface ProductionOptions {
@@ -26,7 +26,7 @@ export default function production({ keepConsole = false, keepDebugger = false }
         transform(code) {
             const ms = new MagicString(code)
 
-            walk(this.parse(code) as Node, {}, {
+            walk(this.parse(code) as AstNode, null, {
                 DebuggerStatement(node) {
                     if (!keepDebugger)
                         ms.remove(node.start, node.end)
@@ -57,9 +57,8 @@ export default function production({ keepConsole = false, keepDebugger = false }
                 }
             })
 
-            return ms.hasChanged()
-                ? { code: ms.toString(), map: ms.generateMap() }
-                : null
+            const result = ms.toString()
+            return result === code ? null : { code: result, map: ms.generateMap() }
         }
     }
 
