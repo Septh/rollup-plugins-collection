@@ -50,7 +50,7 @@ export default function enums(): Plugin {
         (?<outro>
           \}\)\(\k<name>\s\|\|\s\(\k<name>\s=\s\{\}\)\); # })(XX || XX={});
         )
-    `;
+    `
 
     return {
         name: 'enums',
@@ -68,9 +68,8 @@ export default function enums(): Plugin {
                     ms.update(indices.groups.outro![0], indices.groups.outro![1], `${indent}return ${varName};\n})(${varName} || {});`)
                 }
 
-                return ms.hasChanged()
-                    ? { code: ms.toString(), map: ms.generateMap() }
-                    : null
+                const result = ms.toString()
+                return result === code ? null : { code: result, map: ms.generateMap() }
             }
         }
     }
