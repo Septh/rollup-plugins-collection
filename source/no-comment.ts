@@ -25,9 +25,7 @@ export default function noComment({ keepLicenses = false, keepDocs = false, keep
     return {
         name: 'no-comment',
 
-        renderChunk(code) {
-            const ms = new MagicString(code)
-
+        renderChunk(code, chunk) {
             const shouldRemove = (comment: string) => !(
                 licenseStartRx.test(comment) ? keepLicenses
                     : docStartRx.test(comment) ?
@@ -36,6 +34,11 @@ export default function noComment({ keepLicenses = false, keepDocs = false, keep
                     : false
             )
 
+            const exportless = chunk.exports.length === 0
+            if (exportless)
+                code += '\n;'
+            const ms = new MagicString(code)
+
             let previous = { start: NaN, end: NaN } as AstNode
             walk(this.parse(code) as AstNode, null, {
                 _(node, context) {
@@ -43,24 +46,26 @@ export default function noComment({ keepLicenses = false, keepDocs = false, keep
                         // `node` is the first child of `prev`
                         if ((node.start - previous.start) > 1) {
                             // And there is text before it.
-                            scanTextBetweenNodes(ms, previous.start, node.start, shouldRemove)
+                            removeCommentsBetweenNodes(ms, previous.start, node.start, shouldRemove)
                         }
                     }
                     else if ((node.start - previous.end) > 1) {
                         // `node` immediately follows `prev` and there is text between them.
-                        scanTextBetweenNodes(ms, previous.end, node.start, shouldRemove)
+                        removeCommentsBetweenNodes(ms, previous.end, node.start, shouldRemove)
                     }
                     previous = node
                     context.next()
                 }
             })
 
-            const result = ms.toString()
+            let result = ms.toString()
+            if (exportless)
+                result = result.slice(0, -2)
             return result === code ? null : { code: result, map: ms.generateMap() }
         }
     }
 
-    function scanTextBetweenNodes(ms: MagicString, start: number, end: number, shouldRemoveComment: (comment: string) => boolean): void {
+    function removeCommentsBetweenNodes(ms: MagicString, start: number, end: number, shouldRemoveComment: (comment: string) => boolean): void {
 
         // Find all comments between `start` and `end` in the original text.
         const text = ms.original.slice(start, end)
