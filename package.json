@@ -63,7 +63,8 @@
     "build": "npm run buildOnly",
     "buildOnly": "npm run build:js && npm run build:dts",
     "build:js": "tsc -p tsconfig.build.json --declaration false --declarationMap false --removeComments",
-    "build:dts": "tsc -p tsconfig.build.json --declaration --emitDeclarationOnly"
+    "build:dts": "tsc -p tsconfig.build.json --declaration --emitDeclarationOnly",
+    "test": "echo \"No test yet\""
   },
   "dependencies": {
     "magic-string": "^0.30.21",
