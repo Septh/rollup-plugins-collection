@@ -2,7 +2,7 @@ import MagicString from 'magic-string'
 import { walk } from 'zimmerframe'
 import type { Node as AstNode } from 'estree'
 import type { Plugin } from 'rollup'
-import { lineTerminators, space } from './lib/charcode.js'
+import { lineTerminators, spaces } from './lib/charcode.js'
 
 export interface NoCommentOptions {
     /** Keep license (`/*!`) comments? */
@@ -16,6 +16,7 @@ export interface NoCommentOptions {
 /** Removes residual comments in the bundle. */
 export default function noComment({ keepLicenses = false, keepDocs = false, keepAnnotations = false }: NoCommentOptions = {}): Plugin {
 
+    const commentsRx      = /(?<line>[/][/][^\n\r\u2028\u2029]*)|(?<block>[/][*].*?[*][/])/gsd
     const licenseStartRx  = /^\/\*\![ \r\n\u2028\u2029]/    // /*!<space or line terminator>
     const docStartRx      = /^\/\*\*[ \r\n\u2028\u2029]/    // /**<space or line terminator>
     const docLicenseTagRx = /\s@license\b/
@@ -35,78 +36,85 @@ export default function noComment({ keepLicenses = false, keepDocs = false, keep
                     : false
             )
 
-            let prev = { start: NaN, end: NaN } as AstNode
-            walk(this.parse(code) as AstNode, {}, {
+            let previous = { start: NaN, end: NaN } as AstNode
+            walk(this.parse(code) as AstNode, null, {
                 _(node, context) {
-                    if (node.start >= prev.start && node.end <= prev.end) {
+                    if (node.start >= previous.start && node.end <= previous.end) {
                         // `node` is the first child of `prev`
-                        if ((node.start - prev.start) > 1) {
+                        if ((node.start - previous.start) > 1) {
                             // And there is text before it.
-                            scanTextBetweenNodes(ms, prev.start, node.start, shouldRemove)
+                            scanTextBetweenNodes(ms, previous.start, node.start, shouldRemove)
                         }
                     }
-                    else if ((node.start - prev.end) > 1) {
+                    else if ((node.start - previous.end) > 1) {
                         // `node` immediately follows `prev` and there is text between them.
-                        scanTextBetweenNodes(ms, prev.end, node.start, shouldRemove)
+                        scanTextBetweenNodes(ms, previous.end, node.start, shouldRemove)
                     }
-                    prev = node
+                    previous = node
                     context.next()
                 }
             })
 
-            return ms.hasChanged()
-                ? { code: ms.toString(), map: ms.generateMap() }
-                : null
+            const result = ms.toString()
+            return result === code ? null : { code: result, map: ms.generateMap() }
         }
     }
 
-    function scanTextBetweenNodes(ms: MagicString, from: number, to: number, shouldRemoveComment: (comment: string) => boolean): void {
-        const re = /(?<line>[/][/][^\n]*)|(?<block>[/][*].*?[*][/])/gsd
+    function scanTextBetweenNodes(ms: MagicString, start: number, end: number, shouldRemoveComment: (comment: string) => boolean): void {
 
-        const text = ms.original.slice(from, to)
+        // Find all comments between `start` and `end` in the original text.
+        const text = ms.original.slice(start, end)
+        const matches = Array.from(text.matchAll(commentsRx)) as RegExpExecArrayWithGroupsAndIndices<'line' | 'block'>[]
+
+        // Proceed from "bottom" to "top" of text so that we can cut into the result
+        // without re-offsetting all comments "below" the current one.
         let result = text
+        for (let i = matches.length - 1; i >= 0; i--) {
+            const { indices, groups } = matches[i]
+            if (groups.line) {
+                let [ from, to ] = indices.groups.line!
 
-        const matches = Array.from(text.matchAll(re)) as Array<RegExpExecArrayWithGroupsAndIndices<'line' | 'block'>>
-        if (matches.length > 0) {
-            for (let i = matches.length - 1; i >= 0; i--) {
-                const { indices, groups } = matches[i]
-                if (groups.line) {
-                    let [ start, end ] = indices.groups.line!
+                // Back to the first non-space character before the comment.
+                while (from > 0 && spaces.has(result.charCodeAt(from - 1)))
+                    --from
 
-                    while (start > 0 && space.has(text.charCodeAt(start - 1)))
-                        --start
+                // const toRemove = text.slice(from, to)
+                // result = result.replace(toRemove, '')
+                result = result.slice(0, from) + result.slice(to)
+            }
+            else if (groups.block && shouldRemoveComment(groups.block)) {
+                let [ from, to ] = indices.groups.block!
 
-                    result = result.slice(0, start) + result.slice(end)
+                // Back to the first non-space character before the comment.
+                let before = from
+                while (before > 0 && spaces.has(result.charCodeAt(before - 1)))
+                    --before
+
+                // Forward to the first non-space character after the comment.
+                let after = to
+                while (after < result.length && spaces.has(result.charCodeAt(after)))
+                    ++after
+
+                if (lineTerminators.has(result.charCodeAt(after))) {
+                    from = before
+                    to = after
                 }
-                else if (groups.block && shouldRemoveComment(groups.block)) {
-                    let [ start, end ] = indices.groups.block!
+                else if (after > to)
+                    to = after
+                else
+                    from = before
 
-                    let before = start
-                    while (before > 0 && space.has(text.charCodeAt(before - 1)))
-                        --before
-
-                    let after = end
-                    while (after < text.length && space.has(text.charCodeAt(after)))
-                        ++after
-
-                    if (lineTerminators.has(text.charCodeAt(after))) {
-                        start = before
-                        end = ++after
-                    }
-                    else if (before === 0 || !lineTerminators.has(text.charCodeAt(before - 1)))
-                        start = before
-                    else
-                        end = after
-
-                    result = result.slice(0, start) + result.slice(end)
-                }
+                // const toRemove = text.slice(from, to)
+                // result = result.replace(toRemove, '')
+                result = result.slice(0, from) + result.slice(to)
             }
         }
 
-        result = result.replaceAll(/\n+/g, '\n')
-        if (result === '\n')
-            result = ''
-        if (result !== text)
-            ms.update(from, to, result)
+        // Remove empty lines.
+        result = result.replaceAll(/[\n\r\u2028\u2029]{2,}/g, '\n')
+        if (result.length === 1 && lineTerminators.has(result.charCodeAt(0)))
+            ms.remove(start, end)
+        else if (result !== text)
+            ms.update(start, end, result)
     }
 }

@@ -156,7 +156,7 @@ export const lineTerminators = new Set([
     CharCode.paragraphSeparator,
 ])
 
-export const space = new Set([
+export const spaces = new Set([
     CharCode.tab,
     CharCode.lineTab,
     CharCode.formFeed,
