@@ -7,12 +7,12 @@
     "rootDir": "source",
 
     // Output
-    "outDir": "out",
+    "outDir": "dist",
     "sourceMap": true,
     "declaration": true,
     "declarationMap": true,
     "stripInternal": true,
-    "preserveConstEnums": true,
+    "preserveConstEnums": false,
     "allowJs": false,
     "checkJs": false,
     "noEmit": false

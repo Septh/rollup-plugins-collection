@@ -58,7 +58,7 @@
     "!*.map"
   ],
   "scripts": {
-    "clean": "rimraf dist out",
+    "clean": "rimraf dist",
     "prebuild": "npm run clean",
     "build": "npm run build:js && npm run build:dts",
     "build:js": "tsc -p tsconfig.build.json --declaration false --declarationMap false --removeComments",
