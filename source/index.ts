@@ -9,7 +9,7 @@ export interface CollectionOptions {
 }
 
 /**
- * All plugins in the collection with only one import. Adds:
+ * All plugins in the collection with only one import. Currently:
  * - `enums()`
  * - `noComment(options.comment)`
  * - `production(options.production)`
@@ -17,8 +17,8 @@ export interface CollectionOptions {
  * You may also only choose the plugins you need by importing them by their name
  * rather than the default export.
  */
-export default function collection(options: CollectionOptions = {}): Plugin[] {
-    return [ enums(), noComment(options.comments), production(options.production) ]
+export default function collection(options?: CollectionOptions | undefined): Plugin[] {
+    return [ enums(), noComment(options?.comments), production(options?.production) ]
 }
 
 export {
