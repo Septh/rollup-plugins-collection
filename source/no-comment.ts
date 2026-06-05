@@ -16,110 +16,109 @@ export interface NoCommentOptions {
 /** Removes residual comments in the bundle. */
 export default function noComment({ keepLicenses = false, keepDocs = false, keepAnnotations = false }: NoCommentOptions = {}): Plugin {
 
-    const commentsRx      = /(?<line>[/][/][^\n\r\u2028\u2029]*)|(?<block>[/][*].*?[*][/])/gsd
-    const licenseStartRx  = /^\/\*\![ \r\n\u2028\u2029]/    // /*!<space or line terminator>
-    const docStartRx      = /^\/\*\*[ \r\n\u2028\u2029]/    // /**<space or line terminator>
+    const commentsRx      = /(?<block>[/][*].*?[*][/])|(?<line>[/][/][^\n\r\u2028\u2029]*)/gsd
+    const licenseStartRx  = /^[/][*][!][\s]/
+    const docStartRx      = /^[/][*][*][\s]/
     const docLicenseTagRx = /\s@license\b/
     const annotationRx    = /[@#]__(?:PURE|NO_SIDE_EFFECTS)__/
 
     return {
         name: 'no-comment',
 
-        renderChunk(code, chunk) {
-            const shouldRemove = (comment: string) => !(
-                licenseStartRx.test(comment) ? keepLicenses
-                    : docStartRx.test(comment) ?
-                        docLicenseTagRx.test(comment) ? keepLicenses : keepDocs
-                    : annotationRx.test(comment) ? keepAnnotations
-                    : false
-            )
-
-            const exportless = chunk.exports.length === 0
-            if (exportless)
-                code += '\n;'
-            const ms = new MagicString(code)
-
-            let previous = { start: NaN, end: NaN } as AstNode
-            walk(this.parse(code) as AstNode, null, {
-                _(node, context) {
-                    if (node.start >= previous.start && node.end <= previous.end) {
-                        // `node` is the first child of `prev`
-                        if ((node.start - previous.start) > 1) {
-                            // And there is text before it.
-                            removeCommentsBetweenNodes(ms, previous.start, node.start, shouldRemove)
+        renderChunk: {
+            order: 'post',
+            handler(code) {
+                const ms = new MagicString(code += '\n;')
+                let previousNode = { start: NaN, end: NaN } as AstNode
+                walk(this.parse(code) as AstNode, null, {
+                    _(node, context) {
+                        if (node.start >= previousNode.start && node.end <= previousNode.end) {
+                            if ((node.start - previousNode.start) > 1)
+                                removeComments(ms, previousNode.start, node.start)
                         }
-                    }
-                    else if ((node.start - previous.end) > 1) {
-                        // `node` immediately follows `prev` and there is text between them.
-                        removeCommentsBetweenNodes(ms, previous.end, node.start, shouldRemove)
-                    }
-                    previous = node
-                    context.next()
-                }
-            })
+                        else if ((node.start - previousNode.end) > 1)
+                            removeComments(ms, previousNode.end, node.start)
 
-            let result = ms.toString()
-            if (exportless)
+                        if (isEmptyBlock(node))
+                            removeComments(ms, node.start, node.end)
+
+                        previousNode = node
+                        context.next()
+                    }
+                })
+
+                ms.trimLines()
+
+                let result = ms.toString()
+                if (result === code)
+                    return
                 result = result.slice(0, -2)
-            return result === code ? null : { code: result, map: ms.generateMap() }
+                return { code: result, map: ms.generateMap() }
+            }
         }
     }
 
-    function removeCommentsBetweenNodes(ms: MagicString, start: number, end: number, shouldRemoveComment: (comment: string) => boolean): void {
+    function isEmptyBlock(node: AstNode): boolean {
+        const { type } = node
+        return (
+            ((type === 'BlockStatement' || type === 'Program' || type === 'StaticBlock') && node.body.length === 0)
+            || (type === 'SwitchCase' && node.consequent.length === 0)
+        )
+    }
 
-        // Find all comments between `start` and `end` in the original text.
+    function testComment(comment: string): boolean {
+        if (docStartRx.test(comment))
+            return docLicenseTagRx.test(comment) ? keepLicenses : keepDocs
+
+        if (licenseStartRx.test(comment))
+            return keepLicenses
+
+        if (annotationRx.test(comment))
+            return keepAnnotations
+
+        // Meaningless comments are always removed
+        return true
+    }
+
+    function removeComments(ms: MagicString, start: number, end: number): void {
+
         const text = ms.original.slice(start, end)
-        const matches = Array.from(text.matchAll(commentsRx)) as RegExpExecArrayWithGroupsAndIndices<'line' | 'block'>[]
+        const matches = Array.from(text.matchAll(commentsRx)) as RegExpExecArrayWithGroupsAndIndices<'block' | 'line'>[]
 
-        // Proceed from "bottom" to "top" of text so that we can cut into the result
-        // without re-offsetting all comments "below" the current one.
         let result = text
         for (let i = matches.length - 1; i >= 0; i--) {
             const { indices, groups } = matches[i]
-            if (groups.line) {
-                let [ from, to ] = indices.groups.line!
 
-                // Back to the first non-space character before the comment.
-                while (from > 0 && spaces.has(result.charCodeAt(from - 1)))
-                    --from
+            let [ start, end ] = groups.line ? indices.groups.line!
+                : groups.block && testComment(groups.block) ? indices.groups.block!
+                : [ -1, -1 ]
+            if (start < 0)
+                continue
 
-                // const toRemove = text.slice(from, to)
-                // result = result.replace(toRemove, '')
-                result = result.slice(0, from) + result.slice(to)
+            let before = start
+            while (before > 0 && spaces.has(text.charCodeAt(before - 1)))
+                --before
+
+            let after = end
+            while (after < result.length && spaces.has(text.charCodeAt(after)))
+                ++after
+
+            if (lineTerminators.has(text.charCodeAt(after))) {
+                start = before
+                end = after
+                if (before === 0 || lineTerminators.has(text.charCodeAt(before - 1)))
+                    ++end
             }
-            else if (groups.block && shouldRemoveComment(groups.block)) {
-                let [ from, to ] = indices.groups.block!
+            else if (after >= end)
+                end = after
+            else
+                start = before
 
-                // Back to the first non-space character before the comment.
-                let before = from
-                while (before > 0 && spaces.has(result.charCodeAt(before - 1)))
-                    --before
-
-                // Forward to the first non-space character after the comment.
-                let after = to
-                while (after < result.length && spaces.has(result.charCodeAt(after)))
-                    ++after
-
-                if (lineTerminators.has(result.charCodeAt(after))) {
-                    from = before
-                    to = after
-                }
-                else if (after > to)
-                    to = after
-                else
-                    from = before
-
-                // const toRemove = text.slice(from, to)
-                // result = result.replace(toRemove, '')
-                result = result.slice(0, from) + result.slice(to)
-            }
+            result = result.slice(0, start) + result.slice(end)
         }
 
-        // Remove empty lines.
         result = result.replaceAll(/[\n\r\u2028\u2029]{2,}/g, '\n')
-        if (result.length === 1 && lineTerminators.has(result.charCodeAt(0)))
-            ms.remove(start, end)
-        else if (result !== text)
+        if (result !== text)
             ms.update(start, end, result)
     }
 }
