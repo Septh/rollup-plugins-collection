@@ -68,13 +68,13 @@ export default function noComment({ keepLicenses = false, keepDocs = false, keep
 
     function testComment(comment: string): boolean {
         if (docStartRx.test(comment))
-            return docLicenseTagRx.test(comment) ? keepLicenses : keepDocs
+            return docLicenseTagRx.test(comment) ? !keepLicenses : !keepDocs
 
         if (licenseStartRx.test(comment))
-            return keepLicenses
+            return !keepLicenses
 
         if (annotationRx.test(comment))
-            return keepAnnotations
+            return !keepAnnotations
 
         // Meaningless comments are always removed
         return true
